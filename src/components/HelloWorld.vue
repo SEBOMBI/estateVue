@@ -3,37 +3,52 @@
     <a v-for="(menus,id) in menu" :key="id">{{ menus }}</a>
   </div>
 
-<!--  <div v-for="(real,id) in (estates)" :key="id">
-    <div class="black-bg"  v-if="real.modal==true" >
-      <div class="white-bg">
-        <h4>상세페이지</h4>
-        <p>상세페이지내용임</p>
-        <button @click="real.modal=false">닫기</button>
+  <select @change="selectModify">
+    <option selected disabled>선택</option>
+    <option value="lowPrice">낮은가격순</option>
+    <option value="highPrice">높은가격순</option>
+    <option value="ganadaSun">가나다순</option>
+  </select>
+  <!--  <div v-for="(real,id) in (estates)" :key="id">
+      <div class="black-bg"  v-if="real.modal==true" >
+        <div class="white-bg">
+          <h4>상세페이지</h4>
+          <p>상세페이지내용임</p>
+          <button @click="real.modal=false">닫기</button>
+        </div>
       </div>
-    </div>
-      <img src="../assets/estates/room1.jpg" class="room-img"/>
-      <h4 :style="h4Style" @click="real.modal=true">{{ real.name }}</h4>
-      <p>{{ price[id] }} 천만원</p>
-      <button @click="increase(id)">허위매물신고</button>
-      <span>신고수 : {{ real.report }}</span>
-  </div>-->
+        <img src="../assets/estates/room1.jpg" class="room-img"/>
+        <h4 :style="h4Style" @click="real.modal=true">{{ real.name }}</h4>
+        <p>{{ price[id] }} 천만원</p>
+        <button @click="increase(id)">허위매물신고</button>
+        <span>신고수 : {{ real.report }}</span>
+    </div>-->
 
-    <!--MODAL-->
-    <div class="black-bg"  v-if="modal===true" >
-      <div class="white-bg">
-        <img :src="oneRooms[pickedModal].image" class="room-img"/>
-        <h4>{{oneRooms[pickedModal].title}}</h4>
-        <p>{{ oneRooms[pickedModal].content }}</p>
-        <h3> 가격 : {{oneRooms[pickedModal].price}} </h3>
-        <DiscountComponent/>
-        <button @click="modal=false">닫기</button>
-      </div>
-    </div>
+  <!--MODAL-->
+  <!--    <div class="black-bg"  v-if="modal===true" >
+        <div class="white-bg">
+          <img :src="oneRooms[pickedModal].image" class="room-img"/>
+          <h4>{{oneRooms[pickedModal].title}}</h4>
+          <p>{{ oneRooms[pickedModal].content }}</p>
+          <h3> 가격 : {{oneRooms[pickedModal].price}} </h3>
+          <DiscountComponent/>
+          <button @click="modal=false">닫기</button>
+        </div>
+      </div>-->
 
-  <div v-for="(estate,id) in (oneRooms)" :key="id">
-    <img :src="estate.image" class="room-img"/>
-    <h4 :style="h4Style" @click="modal=true; pickedModal=id; ">{{ estate.title }}</h4>
-  </div>
+  <!-- Modal -->
+  <transition name="modals">
+    <EstateModal :modal="modal" :pickedModal="pickedModal" :oneRooms="oneRooms"
+                 @closeModal="modal=false"/>
+  </transition>
+
+  <EstateCard :oneRooms="oneRooms" :modal="modal" :pickedModal="pickedModal"
+              @openModal="modal=true; pickedModal=$event"/>
+
+  <!--  <div v-for="(estate,id) in (oneRooms)" :key="id">
+      <img :src="estate.image" class="room-img"/>
+      <h4 :style="h4Style" @click="modal=true; pickedModal=id; ">{{ estate.title }}</h4>
+    </div>-->
 
 </template>
 
@@ -41,20 +56,22 @@
 <script>
 
 import oneRoomData from '../assets/oneRoomData/oneRooms';
-import DiscountComponent from "@/components/DiscountComponent";
+import EstateCard from "@/components/EstateCard";
+import EstateModal from "@/components/EstateModal";
+
 
 export default {
   name: 'HelloWorld',
-  components: {DiscountComponent},
+  components: {EstateCard, EstateModal},
   props: {
     msg: String
   },
   data() {
     return {
-      DiscountComponent,
-      pickedModal : 0,
-      modal : false,
-      oneRooms : oneRoomData,
+      pickedModal: 0,
+      modal: false,
+      oneRooms: [...oneRoomData],
+      oneRoomsCopy: [...oneRoomData],
       price: [3, 2, 4],
       h4Style: 'color : blue',
       estates: [
@@ -64,9 +81,47 @@ export default {
       menu: ['HOME', 'PRODUCT', 'ABOUT']
     }
   },
+  created() {
+    console.log(this.oneRoomsCopy);
+  },
   methods: {
-    increase(id) {
-      this.estates[id].report++
+    selectModify(e) {
+      switch (e.target.value) {
+        case 'lowPrice' :
+          this.oneRoomsCopy.sort((a, b) => {
+            console.log(a.price - b.price);
+            return (
+                a.price - b.price
+            )
+          });
+          console.log(this.oneRoomsCopy);
+          this.oneRooms = [...this.oneRoomsCopy];
+          break;
+        case 'highPrice' :
+          this.oneRoomsCopy.sort((a, b) => {
+            console.log(b.price + a.price);
+            return b.price - a.price
+          });
+          console.log(this.oneRoomsCopy);
+          this.oneRooms = [...this.oneRoomsCopy];
+          break;
+        case 'ganadaSun' :
+          this.oneRoomsCopy.sort(function(a, b) {
+            const nameA = a.title.toUpperCase(); // ignore upper and lowercase
+            const nameB = b.title.toUpperCase(); // ignore upper and lowercase
+            if (nameA < nameB) {
+              return -1;
+            }
+            if (nameA > nameB) {
+              return 1;
+            }
+            // 이름이 같을 경우
+            return 0;
+          });
+          this.oneRooms = [...this.oneRoomsCopy];
+          console.log(this.oneRoomsCopy);
+          break;
+      }
     }
   }
 }
@@ -77,7 +132,9 @@ export default {
 .menu {
   background: darkslateblue;
   padding: 15px;
+  top : auto;
   border-radius: 5px;
+  margin-bottom: 3%;
 }
 
 .menu a {
@@ -85,32 +142,31 @@ export default {
   padding: 10px;
 }
 
-body {
-  margin: 0;
-}
-
 div {
   box-sizing: border-box;
 }
 
-.black-bg {
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  position: fixed;
-  padding: 20px;
-  top: 1px;
+.modals-enter-from {
+  opacity: 0
 }
 
-.white-bg {
-  width: 100%;
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
+.modals-enter-active {
+  transition: all 1s;
 }
 
-.room-img{
-  width: 50%;
-  margin-top: 5%;
+.modals-enter-to {
+  opacity: 1
+}
+
+.modals-leave-from {
+  opacity: 1
+}
+
+.modals-leave-active {
+  transition: all 1s;
+}
+
+.modals-leave-to {
+  opacity: 0
 }
 </style>
