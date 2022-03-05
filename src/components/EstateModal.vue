@@ -44,6 +44,7 @@ export default {
     }
   },
 
+  //Life Cycle Hooks
   mounted() {
     let intavary=setInterval(() => {
       this.modalSeconds--
