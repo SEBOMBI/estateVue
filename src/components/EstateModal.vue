@@ -52,15 +52,13 @@ export default {
         this.modalShow = false;
         this.modalSecondsWord=false;
         clearInterval(intavary);
-        if(this.modal===true) {
-          this.modalSecondsWord = true;
-          this.modalSeconds = 3;
-          this.modalShow = true;
-          this.mounted();
-        }
       }
     }, 1000);
   },
+  beforeUpdate(){
+  this.month==2 ? alert('2개월은 불가입니다.') : console.log('else')
+  },
+
   watch: {
     month(e) {
       if (e >= 13) {
